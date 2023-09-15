@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>jQuery UI test</title>
+	<link rel="stylesheet" href="js/jquery-ui.min.css">
+	<script src="js/external/jquery/jquery.js"></script>
+	<script src="js/jquery-ui.min.js"></script>
+</head>
+<body>
+
+<button>standard button</button>
+<br>
+<button id="myButton">jQueryUI button</button>
+<br>
+Text
+<br>
+<label for="mySpeed">Select a speed</label>
+<select name="speed" id="mySpeed">
+  <option>Slower</option>
+  <option>Slow</option>
+  <option selected="selected">Medium</option>
+  <option>Fast</option>
+  <option>Faster</option>
+</select>
+
+<input type="text" name="date" id="date">
+
+<script>
+$( "#myButton" ).button();
+$( "#mySpeed" ).selectmenu();
+$( "#date" ).datepicker();
+</script>
+</body>
+</html>
