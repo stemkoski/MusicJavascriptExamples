@@ -7,30 +7,86 @@
 	<link rel="stylesheet" href="js/jquery-ui.min.css">
 	<script src="js/external/jquery/jquery.js"></script>
 	<script src="js/jquery-ui.min.js"></script>
+	<script src="js/howler.js"></script>
 </head>
 <body>
 
+<hr>
+
 <button>standard button</button>
-<br>
-<button id="myButton">jQueryUI button</button>
-<br>
-Text
-<br>
-<label for="mySpeed">Select a speed</label>
-<select name="speed" id="mySpeed">
-  <option>Slower</option>
-  <option>Slow</option>
-  <option selected="selected">Medium</option>
-  <option>Fast</option>
-  <option>Faster</option>
+
+<hr>
+
+<button id="myButton">play selected note</button>
+
+<hr>
+
+<label for="myNotes">Select a note:</label>
+<select id="myNotes">
+  <option>C5</option>
+  <option>D5</option>
+  <option selected="selected">G5</option>
+  <option>A5</option>
+  <option>A#5</option>
 </select>
 
-<input type="text" name="date" id="date">
+<hr>
 
 <script>
+
+// apply jQuery UI styles to elements with given IDs.
+
 $( "#myButton" ).button();
-$( "#mySpeed" ).selectmenu();
-$( "#date" ).datepicker();
+$( "#myNotes" ).selectmenu();
+
+// set up note data
+
+
+let fullNames = [];
+
+let noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+let octaves   = ["1", "2", "3", "4", "5", "6", "7"];
+for (let octave of octaves)
+  for (let noteName of noteNames)
+    fullNames.push( noteName + octave );
+
+var noteAudio = {};
+
+function loadAudioFiles()
+{
+
+  console.log("loading audio files...");
+  // sounds from:
+  // https://github.com/fuhton/piano-mp3
+  // https://github.com/gleitz/midi-js-soundfonts
+
+  for (let fullName of fullNames)
+  {
+    let fileName = "audio/" + fullName.replace("#", "%23") + ".mp3";
+    noteAudio[fullName] = new Howl( {src: [fileName] })
+  }
+
+}
+
+loadAudioFiles();
+
+// button functionality
+
+function playNote()
+{
+	  console.log("I am playing a note!");
+	  let noteName =  $("#myNotes").val();
+	  console.log("Current selection: " + noteName)
+	  noteAudio[ noteName ].play();
+	  // can play multiple notes at once!
+    // noteAudio["D#5"].play();
+	  // noteAudio["G5"].play();
+}
+
+$( "#myButton" ).on( "click", playNote );
+
+
+
 </script>
 </body>
 </html>
