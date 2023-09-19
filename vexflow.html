@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>VexFlow test</title>
+	<script src="js/vexflow-debug.js"></script>
+</head>
+<body>
+
+<div id="output"></div>
+
+<script>
+	const { Renderer, Stave } = Vex.Flow;
+
+	// Create an SVG renderer and attach it to the DIV element named "boo".
+	const div = document.getElementById("output");
+	const renderer = new Renderer(div, Renderer.Backends.SVG);
+
+	// Configure the rendering context.
+	renderer.resize(500, 500);
+	const context = renderer.getContext();
+
+	// Create a stave of width 400 at position 10, 40 on the canvas.
+	const stave = new Stave(10, 40, 400);
+
+	// Add a clef and time signature.
+	stave.addClef("treble").addTimeSignature("4/4");
+
+	// Connect it to the rendering context and draw!
+	stave.setContext(context).draw();
+</script>
+
+</body>
+</html>
