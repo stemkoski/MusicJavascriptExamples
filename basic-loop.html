@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>basic loop demo</title>
+</head>
+<body>
+
+<hr>
+
+See the JS console for output.
+
+<hr>
+
+<script>
+    
+// global scope variables
+var i;
+
+function initialize()
+{
+    i = 0;
+}
+
+function update()
+{
+    i += 1;
+    console.log(i);
+}
+
+function run()
+{
+    initialize();
+    loop();
+}
+
+function loop() 
+{
+    // call function on next screen refresh (approx 1/60 sec)
+	requestAnimationFrame( loop );  
+    update();
+}
+
+run();
+
+</script>
+</body>
+</html>
