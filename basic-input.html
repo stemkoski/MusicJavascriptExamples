@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>basic input demo</title>
+	<script src="js/input.js"></script>
+</head>
+<body>
+
+<hr>
+
+See the JS console for more output.
+
+<hr>
+
+<div id="outputDiv"></div>
+
+<hr>
+
+<script>
+    
+// global scope variables
+var input;
+
+function initialize()
+{
+    input = new Input();
+}
+
+function update()
+{
+    input.update();
+    
+    if (input.pressedKey("A"))
+        document.getElementById("outputDiv").innerHTML = "You pressed A.";
+
+    if (input.releasedKey("A"))
+        document.getElementById("outputDiv").innerHTML = "You released A.";
+
+    if (input.pressingKey("Z"))
+        document.getElementById("outputDiv").innerHTML = "You are pressing Z.";
+
+    if (input.releasedKey("Z"))
+        document.getElementById("outputDiv").innerHTML = "&nbsp;";
+
+    if (input.pressingSet.size > 0)
+        console.log( input.pressingSet );
+}
+
+function run()
+{
+    initialize();
+    loop();
+}
+
+function loop() 
+{
+    // call function on next screen refresh (approx 1/60 sec)
+	requestAnimationFrame( loop );  
+    update();
+}
+
+run();
+
+</script>
+</body>
+</html>
