@@ -77,4 +77,11 @@ class Input
 		k = k.toUpperCase();
 		return this.pressingSet.has(k);
 	}
+
+	// check if any input states have changed since previous update
+	//  only true during update following a key down or key up event
+	stateChange()
+	{
+		return (this.pressedSet.size + this.releasedSet.size) > 0;
+	}
 }
