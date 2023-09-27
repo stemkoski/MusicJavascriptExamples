@@ -21,7 +21,7 @@
 
 <hr>
 
-See the JS console for more output.
+Press some keys!
 
 <hr>
 
@@ -31,45 +31,56 @@ See the JS console for more output.
 <hr>
 
 <script>
-    
+
+// https://0xfe.github.io/vexflow/api/index.html
+
 // global scope variables
-var input;
-var canvasWidth = 200;
-var canvasHeight = 150;
+
+var input = new Input();
+
+var canvasWidth = 400;
+var canvasHeight = 300;
 var myCanvas = document.getElementById("myCanvas");
 var myContext = myCanvas.getContext("2d");
 
-function initialize()
+// VexFlow classes needed
+var { Renderer, Stave, StaveNote, Voice, Formatter, Accidental } = Vex.Flow;
+// staff properties
+var staveWidth = 198; // should be smaller than renderer width; take context scale into account also.
+var stave = new Stave();
+// renderer handles drawing
+var renderer = new Renderer(myCanvas, Renderer.Backends.CANVAS);
+// configure the rendering context
+renderer.resize(canvasWidth, canvasHeight); // resizes the canvas element
+var vexContext = renderer.getContext();
+vexContext.scale(2,2);
+
+function drawStaff()
 {
-    input = new Input();
-    let { Renderer, Stave, StaveNote, Voice, Formatter } = Vex.Flow;
-
-    // Create an SVG renderer and attach it to the DIV element named "output"
-    let renderer = new Renderer(myCanvas, Renderer.Backends.CANVAS);
-
-    // Configure the rendering context.
-    renderer.resize(canvasWidth, canvasHeight); // resizes the canvas element
-    let context = renderer.getContext();
-
-    // staff lines
-    let staveWidth = 198; // should be smaller than renderer width!
-    let stave = new Stave(0, 0, staveWidth, {fill_style: '#000000'});
+    // make a new object (until I figure out how to clear it)
+    stave = new Stave(0, 0, staveWidth); // optional parameters: {fill_style: '#000000'}
+    // staff content
     stave.addClef("treble");
     stave.addTimeSignature("4/4");
-    stave.setContext(context);
+    stave.setContext(vexContext);
     stave.draw();
 
     // calculate starting position based on what has been added already (clef, time signature, etc.)
     let startX = stave.getNoteStartX();
-    let extraSpace = 50;
+    let extraSpace = 40;
     stave.setNoteStartX(startX + extraSpace);
+}
+
+function initialize()
+{
+    drawStaff();
 
     // Create the notes
     let notes = [
-        new StaveNote({ keys: ["C/4", "G/4", "D/4"], duration: "w" }),
+        new StaveNote({ keys: ["C/4", "E/4", "G/4"], duration: "w" }),
     ];
 
-    Formatter.FormatAndDraw(context, stave, notes);
+    Formatter.FormatAndDraw(vexContext, stave, notes);
     // takes place of:
     /*
     let voice = new Voice({ num_beats: 4, beat_value: 4 });
@@ -81,46 +92,84 @@ function initialize()
     formatter.format([voice], noteAreaWidth);
     voice.draw(context, stave);
     */
-
 }
 
-// TODO:
-// create JS object to associate keyboard keys to notes in 4th octave
+// note: choice of #/b was arbitrary
+// note: trying to render pairs of notes with name base name, such as C & C#, does not work
 
-// in update:
-// if any key is pressed or released (add functions to Input class)
-// clear the canvas
-// iterate through through list of all keys in pressing list
-// if it's in the above object, then add corresponding note name to an array
-// create a new notes/StaveNote object
-// call FormatAndDraw to redraw image.
+// associate keyboard keys to notes in 4th octave
+var keysToNotes = { "Z":"C4", "S":"C#4", "X":"D4", "D":"Eb4", "C":"E4", "V":"F4", "G":"F#4", "B":"G4", "H":"Ab4", "N":"A4", "J":"Bb4", "M":"B4", ",":"C5" };
 
 function update()
 {
     input.update();
     
-    if (input.pressedKey(","))
+    // if any key is pressed or released
+    if ( input.stateChange() )
     {
+        // clear the canvas
         myContext.clearRect(0,0, canvasWidth,canvasHeight);
-        // myContext.clearRect() is equivalent to:
-        // myContext.fillStyle = "#00000000"; // #RRGGBBAA -> transparent black
-        // myContext.fillRect( 0,0, canvasWidth,canvasHeight );
-        
-        // document.getElementById("outputDiv").innerHTML = "You pressed A.";
+
+        let noteNameArray   = [];
+        let accidentalArray = [];
+        let noteOctaveArray = [];
+
+        // iterate through through list of all keys that correspond to notes
+        let keyNames = Object.keys( keysToNotes );
+        for (let i = 0; i < keyNames.length; i++)
+        {
+            let keyName = keyNames[i];
+            if ( input.pressingSet.has(keyName) )
+            {
+                let note = keysToNotes[keyName];
+                // extract all the information
+                let noteName = note.charAt(0);
+                noteNameArray.push(noteName);
+                let noteOctave = note.charAt(note.length - 1);
+                noteOctaveArray.push(noteOctave);
+                let accidental = null;
+                if (note.includes("#"))
+                    accidental = "#";
+                if (note.includes("b"))
+                    accidental = "b";
+                accidentalArray.push(accidental);
+            }
+        }
+
+        // always redraw the staff
+        drawStaff();
+
+        if (noteNameArray.length > 0)
+        {
+            let noteNameOctaveArray = [];
+            
+            for (let i = 0; i < noteNameArray.length; i++)
+            {
+                let noteNameSlashOctave = noteNameArray[i] + "/" + noteOctaveArray[i];
+                noteNameOctaveArray.push(noteNameSlashOctave);
+            }
+
+            // create a staveNote object
+            let staveNote = new StaveNote({ keys: noteNameOctaveArray, duration: "w" });
+
+            for (let i = 0; i < accidentalArray.length; i++)
+            {
+                let accidental = accidentalArray[i];
+                if (accidental != null)
+                    staveNote.addModifier(new Accidental(accidental), i);
+            }
+
+            // gather the note(s) into an array
+            let notes = [ staveNote ];
+            // redraw image
+            Formatter.FormatAndDraw(vexContext, stave, notes);
+        }
     }
-/*
-    if (input.releasedKey("A"))
-        document.getElementById("outputDiv").innerHTML = "You released A.";
 
-    if (input.pressingKey("Z"))
-        document.getElementById("outputDiv").innerHTML = "You are pressing Z.";
-
-    if (input.releasedKey("Z"))
-        document.getElementById("outputDiv").innerHTML = "&nbsp;";
-
-    if (input.pressingSet.size > 0)
-        console.log( input.pressingSet );
-    */
+    // myContext.clearRect(0,0, canvasWidth,canvasHeight);
+    // myContext.clearRect() is equivalent to:
+    // myContext.fillStyle = "#00000000"; // #RRGGBBAA -> transparent black
+    // myContext.fillRect( 0,0, canvasWidth,canvasHeight );        
 }
 
 function run()
