@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>basic input demo</title>
+	<script src="js/input.js"></script>
+    <script src="js/vexflow-debug.js"></script>
+   
+</head>
+<style>
+    .border
+    {
+        border-width: 1px;
+        border-radius: 5px; /* rounding */
+        border-style: solid;
+        border-color: black;
+    }
+</style>
+<body>
+
+<hr>
+
+See the JS console for more output.
+
+<hr>
+
+<div id="outputDiv" class=""></div>
+
+<canvas id="myCanvas" class="border"></canvas>
+<hr>
+
+<script>
+    
+// global scope variables
+var input;
+var canvasWidth = 200;
+var canvasHeight = 150;
+var myCanvas = document.getElementById("myCanvas");
+var myContext = myCanvas.getContext("2d");
+
+function initialize()
+{
+    input = new Input();
+    let { Renderer, Stave, StaveNote, Voice, Formatter } = Vex.Flow;
+
+    // Create an SVG renderer and attach it to the DIV element named "output"
+    let renderer = new Renderer(myCanvas, Renderer.Backends.CANVAS);
+
+    // Configure the rendering context.
+    renderer.resize(canvasWidth, canvasHeight); // resizes the canvas element
+    let context = renderer.getContext();
+
+    // staff lines
+    let staveWidth = 198; // should be smaller than renderer width!
+    let stave = new Stave(0, 0, staveWidth, {fill_style: '#000000'});
+    stave.addClef("treble");
+    stave.addTimeSignature("4/4");
+    stave.setContext(context);
+    stave.draw();
+
+    // calculate starting position based on what has been added already (clef, time signature, etc.)
+    let startX = stave.getNoteStartX();
+    let extraSpace = 50;
+    stave.setNoteStartX(startX + extraSpace);
+
+    // Create the notes
+    let notes = [
+        new StaveNote({ keys: ["C/4", "G/4", "D/4"], duration: "w" }),
+    ];
+
+    Formatter.FormatAndDraw(context, stave, notes);
+    // takes place of:
+    /*
+    let voice = new Voice({ num_beats: 4, beat_value: 4 });
+    voice.addTickables(notes);
+    let formatter = new Formatter();
+    formatter.joinVoices([voice]);
+    // how much area should be assumed for rendering notes?
+    let noteAreaWidth = stave.getWidth() - stave.getNoteStartX();
+    formatter.format([voice], noteAreaWidth);
+    voice.draw(context, stave);
+    */
+
+}
+
+// TODO:
+// create JS object to associate keyboard keys to notes in 4th octave
+
+// in update:
+// if any key is pressed or released (add functions to Input class)
+// clear the canvas
+// iterate through through list of all keys in pressing list
+// if it's in the above object, then add corresponding note name to an array
+// create a new notes/StaveNote object
+// call FormatAndDraw to redraw image.
+
+function update()
+{
+    input.update();
+    
+    if (input.pressedKey(","))
+    {
+        myContext.clearRect(0,0, canvasWidth,canvasHeight);
+        // myContext.clearRect() is equivalent to:
+        // myContext.fillStyle = "#00000000"; // #RRGGBBAA -> transparent black
+        // myContext.fillRect( 0,0, canvasWidth,canvasHeight );
+        
+        // document.getElementById("outputDiv").innerHTML = "You pressed A.";
+    }
+/*
+    if (input.releasedKey("A"))
+        document.getElementById("outputDiv").innerHTML = "You released A.";
+
+    if (input.pressingKey("Z"))
+        document.getElementById("outputDiv").innerHTML = "You are pressing Z.";
+
+    if (input.releasedKey("Z"))
+        document.getElementById("outputDiv").innerHTML = "&nbsp;";
+
+    if (input.pressingSet.size > 0)
+        console.log( input.pressingSet );
+    */
+}
+
+function run()
+{
+    initialize();
+    loop();
+}
+
+function loop() 
+{
+    // call function on next screen refresh (approx 1/60 sec)
+	requestAnimationFrame( loop );  
+    update();
+}
+
+run();
+
+</script>
+</body>
+</html>
