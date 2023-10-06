@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Piano</title>
+</head>
+<style>
+    .border
+    {
+        border-width: 1px;
+        border-radius: 5px; /* rounding */
+        border-style: solid;
+        border-color: black;
+    }
+</style>
+<body>
+
+<canvas id="myCanvas" class="border"></canvas>
+
+<script>
+
+var canvasWidth =750;
+var canvasHeight = 200;
+
+var canvas = document.getElementById("myCanvas");
+var context = canvas.getContext("2d")
+
+canvas.width = canvasWidth;
+canvas.height = canvasHeight;
+
+// clear the canvas
+context.clearRect(0,0, canvasWidth,canvasHeight);
+
+/*
+// sample drawing commands
+context.fillStyle = "#88CCFF";
+context.fillRect(0, 0, 400,400);
+context.lineWidth = 1;
+context.strokeStyle = "#FF0000";
+context.strokeRect(0,0, 100,100);
+*/ 
+
+let startX = 20;
+let startY = 20;
+let whiteKeyWidth = 40;
+let whiteKeyHeight = 120;
+let whiteKeySpacing = 6;
+let totalwhiteKeys = 15; // white
+let blackKeyWidth = 0.7 * whiteKeyWidth;
+let blackKeyHeight = 0.6 * whiteKeyHeight;
+
+let whiteKeyFillColor   = "#EEEEEE";
+let whiteKeyBorderColor = "#440088";
+let blackKeyFillColor   = "#444444";
+let blackKeyBorderColor = "#220044";
+
+context.lineWidth = 4;
+
+// draw white keys, starting with C
+for (let i = 0; i < totalwhiteKeys; i++)
+{
+    let x = startX + (whiteKeyWidth + whiteKeySpacing) * i;
+    let y = startY;
+
+    // border
+    context.strokeStyle = whiteKeyBorderColor;
+    context.strokeRect(x,y, whiteKeyWidth, whiteKeyHeight);
+    // inside
+    context.fillStyle = whiteKeyFillColor;
+    context.fillRect(x,y, whiteKeyWidth, whiteKeyHeight);
+}
+
+// draw the sharp keys
+for (let i = 0; i < totalwhiteKeys - 1; i++)
+{
+    // need skip some keys
+    if (i % 7 == 2 || i % 7 == 6)
+        continue;
+
+    // calculate where black key x coordinates are
+
+    // start of current white key
+    let x1 = startX + (whiteKeyWidth + whiteKeySpacing) * i;
+    // end of next white key
+    let x2 = startX + (whiteKeyWidth + whiteKeySpacing) * (i + 1) + whiteKeyWidth;
+    // midpoint
+    let xMid = (x1 + x2) / 2;
+    // start of black key
+    let x = xMid - blackKeyWidth/2;
+    
+    let y = startY;
+
+    // border
+    context.strokeStyle = blackKeyBorderColor;
+    context.strokeRect(x,y, blackKeyWidth, blackKeyHeight);
+    // inside
+    context.fillStyle = blackKeyFillColor;
+    context.fillRect(x,y, blackKeyWidth, blackKeyHeight);
+}
+
+</script>
+
+</body>
+</html>
