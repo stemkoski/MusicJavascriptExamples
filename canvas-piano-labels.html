@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Piano</title>
+</head>
+<style>
+    .border
+    {
+        border-width: 1px;
+        border-radius: 5px; /* rounding */
+        border-style: solid;
+        border-color: black;
+    }
+</style>
+<body>
+
+<canvas id="myCanvas" class="border"></canvas>
+
+<script>
+
+var canvasWidth = 750;
+var canvasHeight = 200;
+
+var canvas = document.getElementById("myCanvas");
+var context = canvas.getContext("2d")
+
+canvas.width = canvasWidth;
+canvas.height = canvasHeight;
+
+// clear the canvas
+context.clearRect(0,0, canvasWidth,canvasHeight);
+
+/*
+// sample drawing commands
+context.fillStyle = "#88CCFF";
+context.fillRect(0, 0, 400,400);
+context.lineWidth = 1;
+context.strokeStyle = "#FF0000";
+context.strokeRect(0,0, 100,100);
+*/ 
+
+let startX = 20;
+let startY = 20;
+let whiteKeyWidth = 40;
+let whiteKeyHeight = 4.00 * whiteKeyWidth;
+let whiteKeySpacing = 6;
+let totalWhiteKeys = 15;
+let blackKeyWidth = 0.80 * whiteKeyWidth;
+let blackKeyHeight = 0.60 * whiteKeyHeight;
+
+let whiteKeyFillColor   = "#EEEEEE";
+let whiteKeyBorderColor = "#440088";
+let blackKeyFillColor   = "#444444";
+let blackKeyBorderColor = "#220044";
+
+context.lineWidth = 4;
+
+// draw white keys, starting with C
+for (let i = 0; i < totalWhiteKeys; i++)
+{
+    let x = startX + (whiteKeyWidth + whiteKeySpacing) * i;
+    let y = startY;
+
+    // border
+    context.strokeStyle = whiteKeyBorderColor;
+    context.strokeRect(x,y, whiteKeyWidth, whiteKeyHeight);
+    // inside
+    context.fillStyle = whiteKeyFillColor;
+    context.fillRect(x,y, whiteKeyWidth, whiteKeyHeight);
+}
+
+// draw the sharp keys
+for (let i = 0; i < totalWhiteKeys - 1; i++)
+{
+    // need skip some keys
+    if (i % 7 == 2 || i % 7 == 6)
+        continue;
+
+    // calculate where black key x coordinates are
+
+    // start of white key
+    let x0 = startX + (whiteKeyWidth + whiteKeySpacing) * i;
+    // start of black key
+    let x = x0 + whiteKeyWidth + whiteKeySpacing/2 - blackKeyWidth/2;
+    
+    let y = startY;
+
+    // border
+    context.strokeStyle = blackKeyBorderColor;
+    context.strokeRect(x,y, blackKeyWidth, blackKeyHeight);
+    // inside
+    context.fillStyle = blackKeyFillColor;
+    context.fillRect(x,y, blackKeyWidth, blackKeyHeight);
+}
+
+// assume labels will be placed near bottom of keys
+// bold/italic is optional
+
+let whiteKeyFont = "bold 38px Arial";
+let whiteKeyTextFillColor = "#888888";
+let whiteKeyTextBorderWidth = 1; // don't enter 0; JS just uses previous line width set
+let whiteKeyTextBorderColor = "#000000";
+let whiteKeyTextBottomMargin = 10;
+
+let whiteKeyTextContent = ["C", "D", "E", "F", "G", "A", "B"];
+
+let blackKeyFont = "bold 20px Arial";
+let blackKeyTextFillColor = "#FFFFFF";
+let blackKeyTextBorderWidth = 1;
+let blackKeyTextBorderColor = "#000000";
+let blackKeyTextBottomMargin = 5;
+
+let blackKeyTextContent = ["C#", "D#", null, "F#", "G#", "A#", null];
+
+context.textAlign = "center";
+
+// initialize drawing settings for white keys
+context.font = whiteKeyFont;
+context.fillStyle = whiteKeyTextFillColor;
+context.lineWidth = whiteKeyTextBorderWidth;
+context.strokeStyle = whiteKeyTextBorderColor;
+
+// draw white key text, starting with C
+for (let i = 0; i < totalWhiteKeys; i++)
+{
+    // key upper left corner
+    let x = startX + (whiteKeyWidth + whiteKeySpacing) * i
+    let y = startY;
+
+    let textX = x + whiteKeyWidth/2;
+    let textY = y + whiteKeyHeight - whiteKeyTextBottomMargin;
+
+    // text
+    // could either repeat labels mod 7
+    // or assign individual symbols over a limited range
+    //   (e.g. when assigning keyboard keys to piano keys)
+    let text = whiteKeyTextContent[i % 7];
+
+    if (text != null)
+    {
+        context.fillText(text, textX, textY);
+        context.strokeText(text, textX, textY)
+    }
+}
+
+// initialize drawing settings for black keys
+context.font = blackKeyFont;
+context.fillStyle = blackKeyTextFillColor;
+context.lineWidth = blackKeyTextBorderWidth;
+context.strokeStyle = blackKeyTextBorderColor;
+
+// draw black key text, starting with C#
+for (let i = 0; i < totalWhiteKeys - 1; i++)
+{
+    // start of white key
+    let x0 = startX + (whiteKeyWidth + whiteKeySpacing) * i;
+    // start of black key
+    let x = x0 + whiteKeyWidth + whiteKeySpacing/2 - blackKeyWidth/2;
+    let y = startY;
+
+    let textX = x + blackKeyWidth/2;
+    let textY = y + blackKeyHeight - blackKeyTextBottomMargin;
+
+    // text
+    // could either repeat labels mod 7
+    // or assign individual symbols over a limited range
+    //   (e.g. when assigning keyboard keys to piano keys)
+    let text = blackKeyTextContent[i % 7]; 
+
+    if (text != null)
+    {
+        context.fillText(text, textX, textY);
+        context.strokeText(text, textX, textY)
+    }
+}
+
+
+</script>
+
+</body>
+</html>
