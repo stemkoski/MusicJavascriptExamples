@@ -44,9 +44,9 @@ context.strokeRect(0,0, 100,100);
 let startX = 20;
 let startY = 20;
 let whiteKeyWidth = 40;
-let whiteKeyHeight = 120;
+let whiteKeyHeight = 4.00 * whiteKeyWidth;
 let whiteKeySpacing = 6;
-let totalwhiteKeys = 15; // white
+let totalWhiteKeys = 15;
 let blackKeyWidth = 0.7 * whiteKeyWidth;
 let blackKeyHeight = 0.6 * whiteKeyHeight;
 
@@ -58,7 +58,7 @@ let blackKeyBorderColor = "#220044";
 context.lineWidth = 4;
 
 // draw white keys, starting with C
-for (let i = 0; i < totalwhiteKeys; i++)
+for (let i = 0; i < totalWhiteKeys; i++)
 {
     let x = startX + (whiteKeyWidth + whiteKeySpacing) * i;
     let y = startY;
@@ -72,7 +72,7 @@ for (let i = 0; i < totalwhiteKeys; i++)
 }
 
 // draw the sharp keys
-for (let i = 0; i < totalwhiteKeys - 1; i++)
+for (let i = 0; i < totalWhiteKeys - 1; i++)
 {
     // need skip some keys
     if (i % 7 == 2 || i % 7 == 6)
