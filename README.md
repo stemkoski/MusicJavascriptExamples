@@ -1,2 +1,5 @@
 # MusicJavascriptExamples
-random examples involving music and javascript
+
+Examples of interactive music-themed webpages.
+
+https://stemkoski.github.io/MusicJavascriptExamples/
