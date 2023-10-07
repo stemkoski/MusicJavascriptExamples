@@ -3,90 +3,79 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>jQuery UI test</title>
-	<link rel="stylesheet" href="js/jquery-ui.min.css">
-	<script src="js/external/jquery/jquery.js"></script>
-	<script src="js/jquery-ui.min.js"></script>
-	<script src="js/howler.js"></script>
+	<title>Javascript Music Examples</title>
+	<link rel="stylesheet" href="css/index.css">
 </head>
 <body>
 
+<div class="title">Music & Javascript Examples</div>
+
+<p>This website contains a collection of examples of Javascript-based music applications.</p>
+
+<br>
+
+<ul>
+  <li>
+    <p><a href="basic.html">Basic HTML</a></p>
+    <p>Examples of basic HTML elements, scripting, interaction with elements on page.</p>
+  </li>
+  <li>
+    <p><a href="jQueryUI.html">jQuery UI</a></p>
+    <p>Examples of <a href="https://jqueryui.com/">jQuery UI</a> elements (buttons, text input, sliders, select menus) and related functions.</p>
+  </li>
+  <li>
+    <p><a href="howler.html">Howler</a></p>
+    <p>How to play audio files using the <a href="https://github.com/goldfire/howler.js">Howler</a> Javascript library.</p>
+  </li>
+  <li>
+    <p><a href="jQuery-howler.html">Playing Selected Notes</a></p>
+    <p>Play musical notes specified with a user interface. Builds on code from the jQuery and Howler examples.</p>
+  </li>
+  <li>
+    <p><a href="vexflow.html">Vexflow</a></p>
+    <p>How to render music notation with the <a href="https://github.com/0xfe/vexflow">Vexflow</a> Javascript library.</p>
+  </li>
+  <li>
+    <p><a href="canvas.html">Canvas</a></p>
+    <p>Basic Javascript commands for drawing on a Canvas element.</p>
+  </li>
+  <li>
+    <p><a href="canvas-piano.html">Canvas: Piano Keys</a></p>
+    <p>Adaptable code for drawing piano keys on a canvas.</p>
+  </li>
+  <li>
+    <p><a href="canvas-piano-labels.html">Canvas: Piano Keys + Labels</a></p>
+    <p>Adaptable code for drawing piano keys and labels on a canvas.</p>
+  </li>
+  <li>
+    <p><a href="basic-loop.html">Loop</a></p>
+    <p>Structured code for setting up a loop of code that runs at 60 FPS.</p>
+  </li>
+  <li>
+    <p><a href="keyboard-input.html">Keyboard Input</a></p>
+    <p>Responding to real-time keyboard input. Builds on code from the Loop example. </p>
+  </li>
+  <li>
+    <p><a href="vexflow-dynamic.html">Dynamic Vexflow Input</a></p>
+    <p>Press keyboard keys corresponding to piano notes (see diagram on page) and the corresponding notes will be rendered on a music staff. Builds on code from the Keyboard Input and Vexflow examples. Diagram generated from code based on the Canvas: Piano Keys and Labels example.</p>
+  </li>
+  
+</ul>
+
+<!--
+
+Additional items:
+
+<li>
+  <p><a href="link.html">Page Title</a></p>
+  <p>Page description.</p>
+</li>
+
+-->
+
+<br>
+
 <hr>
 
-<button>standard button</button>
-
-<hr>
-
-<button id="myButton">play selected note</button>
-
-<hr>
-
-<label for="myNotes">Select a note:</label>
-<select id="myNotes">
-  <option>C5</option>
-  <option>D5</option>
-  <option selected="selected">G5</option>
-  <option>A5</option>
-  <option>A#5</option>
-</select>
-
-<hr>
-
-<script>
-
-// apply jQuery UI styles to elements with given IDs.
-
-$( "#myButton" ).button();
-$( "#myNotes" ).selectmenu();
-
-// set up note data
-
-
-let fullNames = [];
-
-let noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-let octaves   = ["1", "2", "3", "4", "5", "6", "7"];
-for (let octave of octaves)
-  for (let noteName of noteNames)
-    fullNames.push( noteName + octave );
-
-var noteAudio = {};
-
-function loadAudioFiles()
-{
-
-  console.log("loading audio files...");
-  // sounds from:
-  // https://github.com/fuhton/piano-mp3
-  // https://github.com/gleitz/midi-js-soundfonts
-
-  for (let fullName of fullNames)
-  {
-    let fileName = "audio/" + fullName.replace("#", "%23") + ".mp3";
-    noteAudio[fullName] = new Howl( {src: [fileName] })
-  }
-
-}
-
-loadAudioFiles();
-
-// button functionality
-
-function playNote()
-{
-	  console.log("I am playing a note!");
-	  let noteName =  $("#myNotes").val();
-	  console.log("Current selection: " + noteName)
-	  noteAudio[ noteName ].play();
-	  // can play multiple notes at once!
-    // noteAudio["D#5"].play();
-	  // noteAudio["G5"].play();
-}
-
-$( "#myButton" ).on( "click", playNote );
-
-
-
-</script>
 </body>
 </html>

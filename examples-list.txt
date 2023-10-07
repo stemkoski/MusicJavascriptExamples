@@ -1,0 +1,28 @@
+
+CSSify the index.html page!
+
+01.0 HTML: template for a basic website
+
+02.0 jQuery: basic controls: text, button, dropdown, color picker? check box? expand/contract? and responsive functions (put in div, not console)
+
+03.0 Howler: how to play audio files
+
+04.0 VexFlow: how to draw music notation
+
+05.0 Canvas: basic drawing commands
+
+06.0 Canvas-Piano: drawing a piano
+
+07.0 Canvas-Piano-Labels: drawing a piano with labelled keys
+
+08.0 Loop: setting up a 60 FPS loop in a structured way 
+
+09.0 Input: how to set up the loop to process realtime keyboard input. builds on:...
+
+10.0 jQuery + Howler: how to use controls to play audio files (include the keyboard <-> piano graphic). builds on:...
+
+11.0 Input + VexFlow: displaying a single note corresponding to a keyboard key 
+  (include a graphic; simplify current by only responding to keyup and keydown events)
+
+12.0 Input + VexFlow: displaying input from multiple keys (also include graphic)
+

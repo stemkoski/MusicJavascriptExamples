@@ -3,11 +3,11 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>basic input demo</title>
+	<title>Dynamic VexFlow</title>
 	<script src="js/input.js"></script>
     <script src="js/vexflow-debug.js"></script>
    
-</head>
+</head> 
 <style>
     .border
     {
@@ -19,16 +19,15 @@
 </style>
 <body>
 
+<center>
 <hr>
-
-Press some keys!
-
+<p>Press the following keyboard keys to see 
+    the corresponding notes on the staff below.</p>
+<img src="images/keyboard-piano.png">
 <hr>
-
-<div id="outputDiv" class=""></div>
-
 <canvas id="myCanvas" class="border"></canvas>
 <hr>
+</center>
 
 <script>
 
@@ -77,28 +76,17 @@ function initialize()
 
     // Create the notes
     let notes = [
-        new StaveNote({ keys: ["C/4", "E/4", "G/4"], duration: "w" }),
+        new StaveNote({ keys: ["B/4"], duration: "wr" }),
     ];
 
     Formatter.FormatAndDraw(vexContext, stave, notes);
-    // takes place of:
-    /*
-    let voice = new Voice({ num_beats: 4, beat_value: 4 });
-    voice.addTickables(notes);
-    let formatter = new Formatter();
-    formatter.joinVoices([voice]);
-    // how much area should be assumed for rendering notes?
-    let noteAreaWidth = stave.getWidth() - stave.getNoteStartX();
-    formatter.format([voice], noteAreaWidth);
-    voice.draw(context, stave);
-    */
 }
 
 // note: choice of #/b was arbitrary
 // note: trying to render pairs of notes with name base name, such as C & C#, does not work
 
 // associate keyboard keys to notes in 4th octave
-var keysToNotes = { "Z":"C4", "S":"C#4", "X":"D4", "D":"Eb4", "C":"E4", "V":"F4", "G":"F#4", "B":"G4", "H":"Ab4", "N":"A4", "J":"Bb4", "M":"B4", ",":"C5" };
+var keysToNotes = { "Z":"C4", "S":"C#4", "X":"D4", "D":"D#4", "C":"E4", "V":"F4", "G":"F#4", "B":"G4", "H":"G#4", "N":"A4", "J":"A#4", "M":"B4", ",":"C5" };
 
 function update()
 {

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Canvas</title>
+</head>
+
+<style>
+
+.border
+{
+    border-width: 1px;
+    border-style: solid;
+    border-color: black;
+}
+
+</style>
+
+<body>
+
+<canvas id="myCanvas" class="border"></canvas>
+
+<script>
+
+var canvasWidth = 500;
+var canvasHeight = 400;
+
+var canvas = document.getElementById("myCanvas");
+var context = canvas.getContext("2d")
+
+canvas.width = canvasWidth;
+canvas.height = canvasHeight;
+
+// clear the canvas
+context.clearRect(0,0, canvasWidth,canvasHeight);
+
+// drawing rectangles
+
+context.fillStyle = "#4488FF";
+context.fillRect(10,10, 200,50);
+
+context.lineWidth = 3;
+context.strokeStyle = "#FF0000";
+context.strokeRect(50,100, 120,40);
+
+// note: order of fill and stroke make a difference!
+// (the fill blocks half of the stroke area)
+context.fillRect(300,50, 50,50);
+context.strokeRect(300,50, 50,50);
+// compare to:
+context.strokeRect(370,50, 50,50);
+context.fillRect(370,50, 50,50);
+
+// drawing a line
+
+context.beginPath(); // create a new path
+context.moveTo(250, 150); // starting point
+context.lineTo(350, 180); // next point
+context.stroke(); // draw all the specified path segments
+
+// drawing text
+
+context.font = "bold 64px Arial"
+context.strokeRect(20,250, 4,4);
+context.fillStyle = "#8800FF";
+context.strokeStyle = "#FF8888";
+// x,y coordinates of text position refer to left baseline by default
+context.strokeText("Hello, purple!", 20, 250);
+context.fillText("Hello, purple!", 20, 250);
+
+/*
+// can horizontally align to "left", "center", "right"
+context.textAlign = "left";
+// can vertically align to "top", "middle", "bottom", 
+//  or "alphabetic" (default; ignores hanging letters & commas)
+context.textBaseline = "alphabetic";
+*/
+
+</script>
+
+</body>
+</html>

@@ -37,14 +37,14 @@ let startY = 20;
 let whiteKeyWidth = 40;
 let whiteKeyHeight = 4.00 * whiteKeyWidth;
 let whiteKeySpacing = 6;
-let totalWhiteKeys = 15;
+let totalWhiteKeys = 8;
 let blackKeyWidth = 0.80 * whiteKeyWidth;
 let blackKeyHeight = 0.60 * whiteKeyHeight;
 
 let whiteKeyFillColor   = "#EEEEEE";
-let whiteKeyBorderColor = "#440088";
+let whiteKeyBorderColor = "#000000";
 let blackKeyFillColor   = "#444444";
-let blackKeyBorderColor = "#220044";
+let blackKeyBorderColor = "#000000";
 
 context.lineWidth = 4;
 
@@ -90,20 +90,20 @@ for (let i = 0; i < totalWhiteKeys - 1; i++)
 // bold/italic is optional
 
 let whiteKeyFont = "bold 38px Arial";
-let whiteKeyTextFillColor = "#888888";
+let whiteKeyTextFillColor = "#444444";
 let whiteKeyTextBorderWidth = 1; // don't enter 0; JS just uses previous line width set
 let whiteKeyTextBorderColor = "#000000";
 let whiteKeyTextBottomMargin = 10;
 
-let whiteKeyTextContent = ["C", "D", "E", "F", "G", "A", "B"];
+let whiteKeyTextContent = ["Z", "X", "C", "V", "B", "N", "M", ","];
 
-let blackKeyFont = "bold 20px Arial";
+let blackKeyFont = "bold 28px Arial";
 let blackKeyTextFillColor = "#FFFFFF";
 let blackKeyTextBorderWidth = 1;
 let blackKeyTextBorderColor = "#000000";
-let blackKeyTextBottomMargin = 5;
+let blackKeyTextBottomMargin = 8;
 
-let blackKeyTextContent = ["C#", "D#", null, "F#", "G#", "A#", null];
+let blackKeyTextContent = ["S", "D", null, "G", "H", "J", null];
 
 context.textAlign = "center";
 
@@ -127,7 +127,7 @@ for (let i = 0; i < totalWhiteKeys; i++)
     // could either repeat labels mod 7
     // or assign individual symbols over a limited range
     //   (e.g. when assigning keyboard keys to piano keys)
-    let text = whiteKeyTextContent[i % 7];
+    let text = whiteKeyTextContent[i];
 
     if (text != null)
     {
@@ -162,8 +162,8 @@ for (let i = 0; i < totalWhiteKeys - 1; i++)
 
     if (text != null)
     {
-        context.fillText(text, textX, textY);
         context.strokeText(text, textX, textY)
+        context.fillText(text, textX, textY);
     }
 }
 

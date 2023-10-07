@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>jQuery + Howler</title>
+	<link rel="stylesheet" href="js/jquery-ui.min.css">
+	<script src="js/external/jquery/jquery.js"></script>
+	<script src="js/jquery-ui.min.js"></script>
+	<script src="js/howler.js"></script>
+</head>
+<body>
+
+<hr>
+<center>
+
+<label for="myNotes">select note:</label>
+<select id="myNotes">
+  <option>C4</option>
+  <option>D4</option>
+  <option>E4</option>
+  <option>F4</option>
+  <option>G4</option>
+  <option>A4</option>
+  <option>B4</option>
+  <option>C5</option>
+</select>
+
+<!-- a lazy way to add forced space between inline elements -->
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+<button id="myButton">play note</button>
+
+</center>
+<hr>
+
+<script>
+
+// apply jQuery UI styles to elements with given IDs.
+
+$( "#myNotes" ).selectmenu( {width:100} );
+$( "#myButton" ).button();
+
+// store all possible note names
+
+let fullNames = [];
+
+let noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+let octaves   = ["1", "2", "3", "4", "5", "6", "7"];
+for (let octave of octaves)
+  for (let noteName of noteNames)
+    fullNames.push( noteName + octave );
+
+// store all audio note files, indexed by name in a JS object
+
+var noteAudio = {};
+
+// sounds from:
+// https://github.com/fuhton/piano-mp3
+// https://github.com/gleitz/midi-js-soundfonts
+for (let fullName of fullNames)
+{
+  let fileName = "audio/" + fullName.replace("#", "%23") + ".mp3";
+  noteAudio[fullName] = new Howl( {src: [fileName] })
+}
+
+// add button functionality
+
+function playNote()
+{
+	  let noteName =  $("#myNotes").val();
+	  noteAudio[ noteName ].play();
+}
+
+$( "#myButton" ).on( "click", playNote );
+
+// update font
+
+$( "label" ).addClass( "ui-widget" );
+
+</script>
+
+</body>
+</html>

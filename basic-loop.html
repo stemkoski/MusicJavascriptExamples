@@ -3,13 +3,31 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>basic loop demo</title>
+	<title>Loop</title>
 </head>
+
+<style>
+
+.border
+{
+    border-width: 2px;
+    border-style: solid;
+    border-color: black;
+    margin: 10px;
+    padding: 10px
+}
+
+</style>
+    
 <body>
 
 <hr>
 
-See the JS console for output.
+<p>There is a loop running at the refresh rate of the screen
+(usually 60 frames per second). The box below lists how many times
+the loop has completed since the page has loaded.</p>
+
+<div id="outputDiv" class="border">x</div>
 
 <hr>
 
@@ -17,6 +35,7 @@ See the JS console for output.
     
 // global scope variables
 var i;
+var outputDiv = document.getElementById("outputDiv");
 
 function initialize()
 {
@@ -26,7 +45,7 @@ function initialize()
 function update()
 {
     i += 1;
-    console.log(i);
+    outputDiv.innerText = i;
 }
 
 function run()

@@ -8,56 +8,111 @@
 </head>
 <body>
 
-<div id="output"></div>
+<canvas id="myCanvas" class="border"></canvas>
 
 <script>
-	// similar to importing classes; alternative to Vex.Flow.Renderer, etc.
-	const { Renderer, Stave, StaveNote, Voice, Formatter } = Vex.Flow;
 
-	// Create an SVG renderer and attach it to the DIV element named "output"
-	const div = document.getElementById("output");
-	const renderer = new Renderer(div, Renderer.Backends.SVG);
+// Note: Staff and Stave mean the same thing (American English vs. British English)
 
-	// Configure the rendering context.
-	renderer.resize(500, 500);
-	const context = renderer.getContext();
+var canvasWidth = 400;
+var canvasHeight = 300;
+var myCanvas = document.getElementById("myCanvas");
+var myContext = myCanvas.getContext("2d");
 
-	// Create a stave of width 400 at position 10, 40 on the canvas.
-	const stave = new Stave(10, 40, 400);
+// similar to importing classes; alternative to Vex.Flow.Renderer, etc.
+const { Renderer, Stave, StaveNote, Voice, Formatter, Stem, Accidental, Beam } = Vex.Flow;
 
-	// Add a clef and time signature.
-	stave.addClef("treble").addTimeSignature("4/4");
+// renderer handles drawing
+var renderer = new Renderer(myCanvas, Renderer.Backends.CANVAS);
+renderer.resize(canvasWidth, canvasHeight); // resizes the canvas element
 
-	// Connect it to the rendering context and draw!
-	stave.setContext(context).draw();
+// the VexFlow context is used for music rendering, similar to regular JS canvas context used for drawing
+var vexContext = renderer.getContext();
+vexContext.scale(1, 1);
 
+// staff properties
+var staveWidth = 390; // should be smaller than renderer width; take context scale into account also.
+var stave = new Stave(0,0, staveWidth);
+// add content
+stave.addClef("treble");
+stave.addTimeSignature("4/4");
+stave.setContext(vexContext);
 
+// draw what there is so far
+stave.draw();
 
-	// Create the notes
-	const notes = [
-	    // A quarter-note C.
-	    new StaveNote({ keys: ["c/4"], duration: "q" }),
+// if you want to add extra space between the time signature and the first note:
+// calculate starting position based on what has been added already (clef, time signature, etc.)
+let startX = stave.getNoteStartX();
+let extraSpace = 40;
+stave.setNoteStartX(startX + extraSpace);
 
-	    // A quarter-note D.
-	    new StaveNote({ keys: ["d/4"], duration: "q" }),
+// There are multiple ways to render notes on the staff
+// * The easiest is using "Easy Score", see the website for details, but it is least flexible.
+// * Below is a medium complexity way, gives a bit more flexibility.
 
-	    // A quarter-note rest. Note that the key (b/4) specifies the vertical
-	    // position of the rest.
-	    new StaveNote({ keys: ["b/4"], duration: "qr" }),
+// create notes to draw on staff
+// * format is noteName + "/" + octaveNumber
+// * duration: 16, 8, q, h, w
+// * duration includes r: indicates rest, key "B/4" indicates position on the staff (middle)
+// * passing multiple notes in the keys array will group them into a chord
+// * warning: the durations (whole, half, quarter) of stave notes in array must add up to a whole
+//     otherwise the renderer may complain
 
-	    // A C-Major chord.
-	    new StaveNote({ keys: ["c/4", "e/4", "g/4"], duration: "q" }),
-	];
+// could just make one array with all the notes,
+//  but placing in separate arrays here because we want to "beam" together the eighth notes
+let notes1 = 
+[ 
+    new StaveNote({ keys: ["B/4"], duration: "8", stem_direction: Stem.DOWN }), 
+    new StaveNote({ keys: ["E/5"], duration: "8", stem_direction: Stem.DOWN }).addModifier( new Accidental("b"), 0 ), 
+];
 
+let notes2 =
+[
+	new StaveNote({ keys: ["B/4"], duration: "qr" }),
+    new StaveNote({ keys: ["C/4", "E/4", "G/4"], duration: "h" })
+];
+
+// only necessary if multiple arrays of notes are present
+let allNotes = notes1.concat( notes2 );
+
+// if you want to beam together some of the notes:
+// see: https://github.com/0xfe/vexflow/wiki/Tutorial
+
+// create Beam objects only for the arrays of notes that should be attached by a single beam
+// this also removes all the stems from the notes!
+let beamArray = [ new Beam(notes1) ];
+
+// include fourth parameter {autobeam: true} to handle it
+Formatter.FormatAndDraw(vexContext, stave, allNotes);
+
+// if applicable: after drawing the notes, need to draw the beams (and their stems)
+for (let i = 0; i < beamArray.length; i++ )
+{
+	let beam = beamArray[i];
+	beam.setContext( vexContext ).draw(); 
+}
+
+// The most complex and thus most customizable way to render notes 
+//   (which may be necessary for more complex music, treble and bass clef, etc.)
+//   involves replacing the previous line of code with the following:
+
+/*
 	// Create a voice in 4/4 and add above notes
-	const voice = new Voice({ num_beats: 4, beat_value: 4 });
+	let voice = new Voice({ num_beats: 4, beat_value: 4 });
 	voice.addTickables(notes);
 
-	// Format and justify the notes to 400 pixels.
-	new Formatter().joinVoices([voice]).format([voice], 350);
+	let formatter = new Formatter();
+	formatter.joinVoices([voice]);
+	
+	// how much area should be assumed for rendering notes?
+	let noteAreaWidth = stave.getWidth() - stave.getNoteStartX();
+	formatter.format([voice], noteAreaWidth);
+	
+	// render the notes to the staff
+	voice.draw(vexContext, stave);
+*/
 
-	// Render voice
-	voice.draw(context, stave);
 </script>
 
 </body>

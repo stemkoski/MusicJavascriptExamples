@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Howler</title>
+	<script src="js/howler.js"></script>
+</head>
+<body>
+
+<hr>
+
+<center>
+  <button id="myButton">Play Audio</button>
+</center>
+
+<hr>
+
+<script>
+
+// note: can provide multiple audio filenames in src array as system fallbacks
+let C5 = new Howl( {src: [ "audio/C5.mp3" ] } );
+let E5 = new Howl( {src: [ "audio/E5.mp3" ] } );
+let G5 = new Howl( {src: [ "audio/G5.mp3" ] } );
+
+// get button using basic Javascript
+let myButton = document.getElementById("myButton");
+
+function playAudio()
+{
+   C5.play();
+   // can play multiple sounds at once
+   // E5.play();
+   // G5.play();
+}
+
+// apply functionality
+myButton.addEventListener("click", playAudio);
+
+</script>
+
+</body>
+</html>
