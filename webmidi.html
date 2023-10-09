@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>WebMIDI</title>
+    <script src="js/webmidi.iife.js"></script>
+</head>
+
+<style>
+.border
+{
+    border-width: 1px;
+    border-style: solid;
+    border-color: black;
+}
+</style>
+
+<body>
+
+<!-- TODO: issue with detecting late "connected" MIDI events in Firefox browser -->
+<p>WebMIDI works best in Google Chrome browser (2023). This demo requires a MIDI device to be connected.</p>
+
+<textarea id="outputArea" rows="12" cols="80"></textarea>
+
+<script>
+
+var outputArea = document.getElementById("outputArea");
+
+var appendToOutput = function(text)
+{
+    outputArea.value += "\n" + text;
+    // keep scrolled to bottom
+    outputArea.scrollTop = outputArea.scrollHeight; 
+};
+
+appendToOutput( "Checking WebMIDI status..." );
+
+WebMidi.enable().then( onEnabled ).catch( err => alert(err) );
+
+// Function called when WEBMIDI.js is ready
+function onEnabled() 
+{
+    appendToOutput("WebMIDI enabled!");
+    // Display available MIDI input devices
+    if (WebMidi.inputs.length < 1) 
+    {
+        appendToOutput("No device detected yet.");
+    } 
+    else 
+    {
+        appendToOutput("Devices already detected:");
+        for (let i = 0; i < WebMidi.inputs.length; i++)
+        {
+            let input = WebMidi.inputs[i];
+            let name = input.name;
+            appendToOutput( `Name: ${name} (index: ${i})` );
+            addListeners(name);
+        }
+    }
+
+    /* these listeners don't seem to work in Firefox browser? */
+    WebMidi.addListener("connected", function(e) 
+    {
+        let name = e.port.name;
+        let type = e.port.type;
+        appendToOutput( `Device connected: ${name} (type: ${type})` );
+        if (type == "input")
+            addListeners(name);
+    });
+
+    WebMidi.addListener("disconnected", function(e) 
+    {
+        let name = e.port.name;
+        let type = e.port.type;
+        appendToOutput( `Device disconnected: ${name} (type: ${type})` );
+        if (type == "input")
+            removeListeners(name);
+    });
+}
+
+var midiInput = null;
+
+function addListeners(inputName)
+{
+    midiInput = WebMidi.getInputByName(inputName);
+
+    midiInput.addListener("noteon", "all",
+        function (e) 
+        {  
+            let noteData = e.note.name + (e.note.accidental || "") + e.note.octave;
+            let velocity = e.velocity;
+            appendToOutput("NoteOn: " + noteData + " : " + velocity);
+        }
+    );
+
+    midiInput.addListener("noteoff", "all",
+        function (e) 
+        {
+            let noteData = e.note.name + (e.note.accidental || "") + e.note.octave;  
+            appendToOutput("NoteOff: " + noteData);  
+        }
+    );
+}
+
+function removeListeners(inputName)
+{
+    midiInput.removeListener("noteon");
+    midiInput.removeListener("noteoff");
+    midiInput = null;
+}
+
+
+</script>
+
+</body>
+</html>
