@@ -6,6 +6,7 @@
     <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
 	<title>WebMIDI</title>
     <script src="js/webmidi.iife.js"></script>
+    <script src="js/howler.js"></script>
 </head>
 
 <style>
@@ -20,10 +21,12 @@
 <body>
 
 <!-- TODO: issue with detecting late "connected" MIDI events in Firefox browser -->
+<center>
 <p>WebMIDI works best in Google Chrome browser (2023). This demo requires a MIDI device to be connected.</p>
-
 <textarea id="outputArea" rows="12" cols="80"></textarea>
-
+<p>Web Audio can not start until a user interacts with the page.</p>
+<button onclick="loadAudioFiles()">load piano audio files</button>
+</center>
 <script>
 
 var outputArea = document.getElementById("outputArea");
@@ -92,6 +95,7 @@ function addListeners(inputName)
             let noteData = e.note.name + (e.note.accidental || "") + e.note.octave;
             let velocity = e.velocity;
             appendToOutput("NoteOn: " + noteData + " : " + velocity);
+            playNote(noteData, velocity);
         }
     );
 
@@ -100,6 +104,7 @@ function addListeners(inputName)
         {
             let noteData = e.note.name + (e.note.accidental || "") + e.note.octave;  
             appendToOutput("NoteOff: " + noteData);  
+            stopNote(noteData);
         }
     );
 }
@@ -109,6 +114,55 @@ function removeListeners(inputName)
     midiInput.removeListener("noteon");
     midiInput.removeListener("noteoff");
     midiInput = null;
+}
+
+// play corresponding note -----------------------------
+
+// store all possible note names
+
+let fullNames = [];
+
+let noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+let octaves   = ["1", "2", "3", "4", "5", "6", "7"];
+for (let octave of octaves)
+  for (let noteName of noteNames)
+    fullNames.push( noteName + octave );
+
+// store all audio note files, indexed by name in a JS object
+
+var noteAudio = {};
+
+function loadAudioFiles()
+{
+    // sounds from:
+    // https://github.com/fuhton/piano-mp3
+    // https://github.com/gleitz/midi-js-soundfonts
+    for (let fullName of fullNames)
+    {
+        let fileName = "audio/" + fullName.replace("#", "%23") + ".mp3";
+        noteAudio[fullName] = new Howl( {src: [fileName] })
+    }
+}
+
+// add audio functionality
+
+function playNote(noteName, noteVolume)
+{
+  if (noteName in noteAudio)
+  {
+     let v = Math.max( 0.10, noteVolume );
+     noteAudio[noteName].volume(v);
+     noteAudio[noteName].play();
+  }
+}
+
+function stopNote(noteName)
+{
+  if (noteName in noteAudio)
+  {
+     let v = noteAudio[noteName].volume();
+     noteAudio[noteName].fade(v, 0, 250);
+  }
 }
 
 
