@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
+	<title>WebMIDI</title>
+    <link rel="stylesheet" href="js/jquery-ui.min.css">
+	<script src="js/external/jquery/jquery.js"></script>
+	<script src="js/jquery-ui.min.js"></script>
+    <script src="js/webmidi.iife.js"></script>
+    <script src="js/howler.js"></script>
+</head>
+
+<style>
+.border
+{
+    margin: 8px;
+    padding: 8px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: black;
+}
+/* useful if you have a slider and want to add labels */
+.sliderLabel 
+{
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  /* for accurate positioning */
+  margin-left: -10px; /* equal to half of width */
+  margin-top: 20px;   /* equal to height */
+  text-align: center;
+}
+</style>
+
+<body>
+
+<!-- TODO: issue with detecting late "connected" MIDI events in Firefox browser -->
+
+<center>
+<p>This demo requires a MIDI device to be connected.</p>
+
+<button id="loadAudioButton">load piano audio files</button>
+
+<p id="transposeLabel">Transposition: 0</p>
+<div id="transposeSlider"> </div>
+
+<div id="outputArea" class="border" style="width:500px;"></div>
+
+</center>
+
+<script>
+
+let loadAudioButton = $( "#loadAudioButton" );
+loadAudioButton.button();
+loadAudioButton.on( "click", loadAudioFiles );
+
+let transposeSlider = $( "#transposeSlider" );
+transposeSlider.slider( {min:-12, max:12, step:1, value:0, animate:true} );
+transposeSlider.css( {width:300, "margin-bottom":50} );
+let tempLabel = null;
+tempLabel = $( "<label> -12 </label>" ).addClass( "sliderLabel" ).css( { left:"0%" } );
+transposeSlider.append(tempLabel);
+tempLabel = $( "<label> 0 </label>" ).addClass( "sliderLabel" ).css( { left:"50%" } );
+transposeSlider.append(tempLabel);
+tempLabel = $( "<label> 12 </label>" ).addClass( "sliderLabel" ).css( { left:"100%" } );
+transposeSlider.append(tempLabel);
+
+transposeSlider.on( "slide",
+  function(event, ui)
+  {
+    $( "#transposeLabel" ).text("Transposition: " + ui.value);
+  }
+);
+
+let outputArea = $( "#outputArea" )
+
+WebMidi.enable().then( onEnabled ).catch( err => alert(err) );
+
+// Function called when WEBMIDI.js is ready
+function onEnabled() 
+{
+    if (WebMidi.inputs.length > 0)
+        addListeners(WebMidi.inputs[0].name);
+
+    // handle late connection (after page loads)
+    WebMidi.addListener("connected", function(e) 
+    {
+        console.log( `Device connected: ${e.port.name} (type: ${e.port.type})` );
+        if (e.port.type == "input")
+            addListeners(e.port.name);
+    });
+
+    WebMidi.addListener("disconnected", function(e) 
+    {
+        console.log( `Device disconnected: ${e.port.name} (type: ${e.port.type})` );
+        if (e.port.type == "input")
+            removeListeners(e.port.name);
+    });
+}
+
+var midiInput = null;
+
+function addListeners(inputName)
+{
+    midiInput = WebMidi.getInputByName(inputName);
+    midiInput.addListener("noteon", "all", playNote );
+    midiInput.addListener("noteoff", "all", stopNote );
+}
+
+function removeListeners(inputName)
+{
+    midiInput.removeListener("noteon");
+    midiInput.removeListener("noteoff");
+    midiInput = null;
+}
+
+// play corresponding note -----------------------------
+
+// store all possible note names
+
+let fullNoteNames = ['A0', 'A#0', 'B0'];
+
+let noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+let octaves   = ["1", "2", "3", "4", "5", "6", "7"];
+for (let octave of octaves)
+  for (let noteName of noteNames)
+    fullNoteNames.push( noteName + octave );
+
+fullNoteNames.push( 'C8' );
+
+let midiNumberToNoteName = {};
+for (let n = 21; n < 109; n++)
+    midiNumberToNoteName[n] = fullNoteNames[n - 21];
+
+// store all audio note files, indexed by name in a JS object
+
+var noteAudio = {};
+
+function loadAudioFiles()
+{
+    // sounds from:
+    // https://github.com/fuhton/piano-mp3
+    // https://github.com/gleitz/midi-js-soundfonts
+    for (let fullName of fullNoteNames)
+    {
+        let fileName = "audio/" + fullName.replace("#", "%23") + ".mp3";
+        noteAudio[fullName] = new Howl( {src: [fileName] })
+    }
+}
+
+// add audio functionality
+
+function playNote(noteEvent)
+{ 
+  let note = noteEvent.note;
+  let noteNumber = note.number;
+  let noteFullName = note.name + (note.accidental || "") + note.octave;
+  let transposeValue = transposeSlider.slider( "value" );
+  let newNoteNumber = noteNumber + transposeValue;
+  let newNoteName = midiNumberToNoteName[ newNoteNumber ];
+  outputArea.text("Original note: " + noteFullName + ". Transposed by: " + transposeValue + ". New note: " + newNoteName + ".");
+  let noteVolume = noteEvent.velocity;
+  if (newNoteName in noteAudio)
+  {
+     let v = Math.max( 0.10, noteVolume );
+     noteAudio[newNoteName].volume(v);
+     noteAudio[newNoteName].play();
+  }
+}
+
+function stopNote(noteEvent)
+{
+  let note = noteEvent.note;
+  let noteNumber = note.number;
+  let noteFullName = note.name + (note.accidental || "") + note.octave;
+  let transposeValue = transposeSlider.slider( "value" );
+  let newNoteNumber = noteNumber + transposeValue;
+  let newNoteName = midiNumberToNoteName[ newNoteNumber ];
+  if (newNoteName in noteAudio)
+  {
+     let v = noteAudio[newNoteName].volume();
+     noteAudio[newNoteName].fade(v, 0, 250);
+  }
+}
+
+// consistent text style
+$( "p" ).addClass( "ui-widget" );
+$( "div" ).addClass( "ui-widget" );
+$( "label" ).addClass( "ui-widget" );
+
+</script>
+
+</body>
+</html>
