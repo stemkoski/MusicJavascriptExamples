@@ -37,7 +37,7 @@ let startY = 20;
 let whiteKeyWidth = 40;
 let whiteKeyHeight = 4.00 * whiteKeyWidth;
 let whiteKeySpacing = 6;
-let totalWhiteKeys = 8;
+let totalWhiteKeys = 15;
 let blackKeyWidth = 0.80 * whiteKeyWidth;
 let blackKeyHeight = 0.60 * whiteKeyHeight;
 
@@ -89,13 +89,13 @@ for (let i = 0; i < totalWhiteKeys - 1; i++)
 // assume labels will be placed near bottom of keys
 // bold/italic is optional
 
-let whiteKeyFont = "bold 38px Arial";
+let whiteKeyFont = "bold 36px Arial";
 let whiteKeyTextFillColor = "#444444";
 let whiteKeyTextBorderWidth = 1; // don't enter 0; JS just uses previous line width set
 let whiteKeyTextBorderColor = "#000000";
 let whiteKeyTextBottomMargin = 10;
 
-let whiteKeyTextContent = ["Z", "X", "C", "V", "B", "N", "M", ","];
+let whiteKeyTextContent = ["Z", "X", "C", "V", "B", "N", "M", "Q,", "W", "E", "R", "T", "Y", "U", "I"];
 
 let blackKeyFont = "bold 28px Arial";
 let blackKeyTextFillColor = "#FFFFFF";
@@ -103,7 +103,7 @@ let blackKeyTextBorderWidth = 1;
 let blackKeyTextBorderColor = "#000000";
 let blackKeyTextBottomMargin = 8;
 
-let blackKeyTextContent = ["S", "D", null, "G", "H", "J", null];
+let blackKeyTextContent = ["S", "D", null, "G", "H", "J", null, "2", "3", null, "5", "6", "7"];
 
 context.textAlign = "center";
 
@@ -158,7 +158,7 @@ for (let i = 0; i < totalWhiteKeys - 1; i++)
     // could either repeat labels mod 7
     // or assign individual symbols over a limited range
     //   (e.g. when assigning keyboard keys to piano keys)
-    let text = blackKeyTextContent[i % 7]; 
+    let text = blackKeyTextContent[i]; 
 
     if (text != null)
     {
