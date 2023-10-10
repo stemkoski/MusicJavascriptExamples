@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>WebMIDI</title>
+    <link rel="stylesheet" href="js/jquery-ui.min.css">
+	<script src="js/external/jquery/jquery.js"></script>
+	<script src="js/jquery-ui.min.js"></script>
+	<script src="js/input.js"></script>
+    <script src="js/webmidi.iife.js"></script>
+    <script src="js/howler.js"></script>
+</head>
+
+<style>
+
+.border
+{
+    border-width: 2px;
+    border-style: solid;
+    border-color: black;
+    border-radius: 5px; /* rounding */
+    margin: 10px;
+    xpadding: 10px
+}
+
+</style>
+
+<body>
+
+<!-- TODO: issue with detecting late "connected" MIDI events in Firefox browser -->
+
+<center>
+<p>This demo requires a MIDI device to be connected.</p>
+<button id="loadAudioButton">load piano audio files</button>
+<hr>
+<canvas id="myCanvas" class="border"></canvas>
+<hr>
+</center>
+
+<script>
+    
+// global scope variables
+var input;
+
+var canvasWidth =730;
+var canvasHeight = 200;
+
+var canvas = document.getElementById("myCanvas");
+var context = canvas.getContext("2d")
+
+canvas.width = canvasWidth;
+canvas.height = canvasHeight;
+
+// clear the canvas
+context.clearRect(0,0, canvasWidth,canvasHeight);
+
+var startX = 20;
+var startY = 20;
+var whiteKeyWidth = 40;
+var whiteKeyHeight = 4.00 * whiteKeyWidth;
+var whiteKeySpacing = 6;
+var totalWhiteKeys = 15;
+var blackKeyWidth = 0.7 * whiteKeyWidth;
+var blackKeyHeight = 0.6 * whiteKeyHeight;
+
+var whiteKeyFillColor   = "#EEEEEE"; // #EEEEEE
+var whiteKeyActiveColor = "#88CCFF"; // #88CCFF
+var whiteKeyBorderColor = "#000000";
+var blackKeyFillColor   = "#444444"; // #444444
+var blackKeyActiveColor = "#AA88FF";
+var blackKeyBorderColor = "#000000";
+
+context.lineWidth = 4;
+
+let whiteKeyNames = ["C3", "D3", "E3", "F3", "G3", "A3", "B3", 
+                     "C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5"];
+let blackKeyNames = ["C#3", "D#3", null, "F#3", "G#3", "A#3", null,
+                     "C#4", "D#4", null, "F#4", "G#4", "A#4", null,]
+
+let pianoKeyNames = whiteKeyNames.concat(blackKeyNames);
+
+function removeAllValue(arr, value) 
+{
+  let i = 0;
+  while (i < arr.length) 
+  {
+    if (arr[i] === value)
+      arr.splice(i, 1);
+    else
+      i++;
+  }
+}
+
+removeAllValue(pianoKeyNames, null);
+
+let keyboardToPianoMapping = {
+    "Z":"C3", "X":"D3", "C":"E3", "V":"F3", "B":"G3", "N":"A3", "M":"B3", ",":"C4", "Q":"C4", "W":"D4", "E":"E4", "R":"F4", "T":"G4", "Y":"A4", "U":"B4", "I":"C5",
+    "S":"C#3", "D":"D#3", "G":"F#3", "H":"G#3", "J":"A#3",
+    "2":"C#4", "3":"D#4", "5":"F#4", "6":"G#4", "7":"A#4" };
+
+let pianoKeyDown = {};
+// remember: "in" iterates over keys, "of" iterates over values
+for (let name of pianoKeyNames)
+    pianoKeyDown[name] = false;
+
+// WebMIDI functions -----------------------------------------------
+
+WebMidi.enable().then( onEnabled ).catch( err => alert(err) );
+
+var midiInput = null;
+
+function onEnabled() 
+{
+    if (WebMidi.inputs.length > 0)
+        addListeners(WebMidi.inputs[0].name);
+
+    // handle late connection (after page loads)
+    WebMidi.addListener("connected", function(e) 
+    {
+        console.log( `Device connected: ${e.port.name} (type: ${e.port.type})` );
+        if (e.port.type == "input")
+            addListeners(e.port.name);
+    });
+
+    WebMidi.addListener("disconnected", function(e) 
+    {
+        console.log( `Device disconnected: ${e.port.name} (type: ${e.port.type})` );
+        if (e.port.type == "input")
+            removeListeners(e.port.name);
+    });
+}
+
+function addListeners(inputName)
+{
+    midiInput = WebMidi.getInputByName(inputName);
+    midiInput.addListener("noteon", "all", playNote );
+    midiInput.addListener("noteoff", "all", stopNote );
+}
+
+function removeListeners(inputName)
+{
+    midiInput.removeListener("noteon");
+    midiInput.removeListener("noteoff");
+    midiInput = null;
+}
+
+// audio playing functions ------------------------------------------
+
+let loadAudioButton = $( "#loadAudioButton" );
+loadAudioButton.button();
+loadAudioButton.on( "click", loadAudioFiles );
+
+// store all possible note names
+let fullNoteNames = ['A0', 'A#0', 'B0'];
+
+let noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+let octaves   = ["1", "2", "3", "4", "5", "6", "7"];
+for (let octave of octaves)
+  for (let noteName of noteNames)
+    fullNoteNames.push( noteName + octave );
+
+fullNoteNames.push( 'C8' );
+
+let midiNumberToNoteName = {};
+for (let n = 21; n < 109; n++)
+    midiNumberToNoteName[n] = fullNoteNames[n - 21];
+
+// store all audio note files, indexed by name in a JS objec
+var noteAudio = {};
+
+function loadAudioFiles()
+{
+    // sounds from:
+    // https://github.com/fuhton/piano-mp3
+    // https://github.com/gleitz/midi-js-soundfonts
+    for (let fullName of fullNoteNames)
+    {
+        let fileName = "audio/" + fullName.replace("#", "%23") + ".mp3";
+        noteAudio[fullName] = new Howl( {src: [fileName] })
+    }
+    console.log("Audio loaded.");
+}
+
+function playNote(noteEvent)
+{ 
+  let note, noteFullName, noteVolume;
+  if (typeof noteEvent == "object")
+  {
+    note = noteEvent.note;
+    noteFullName = note.name + (note.accidental || "") + note.octave;
+    noteVolume = noteEvent.velocity;
+  }
+  else
+  {
+    noteFullName = noteEvent;
+    noteVolume = 1;
+  }
+
+  if (noteFullName in noteAudio)
+  {
+     let v = Math.max( 0.10, noteVolume );
+     noteAudio[noteFullName].volume(v);
+     noteAudio[noteFullName].play();
+  }
+  // graphics update
+  pianoKeyDown[noteFullName] = true;
+}
+
+function stopNote(noteEvent)
+{
+  let note, noteFullName, noteVolume;
+  if (typeof noteEvent == "object")
+  {
+    note = noteEvent.note;
+    noteFullName = note.name + (note.accidental || "") + note.octave;
+    noteVolume = noteEvent.velocity;
+  }
+  else
+  {
+    noteFullName = noteEvent;
+    noteVolume = 1;
+  }
+
+  if (noteFullName in noteAudio)
+  {
+     let v = noteAudio[noteFullName].volume();
+     noteAudio[noteFullName].fade(v, 0, 250);
+  }
+  // graphics update
+  pianoKeyDown[noteFullName] = false;
+}
+
+
+// main loop functions ----------------------------------------------
+
+function initialize()
+{
+    input = new Input();
+}
+
+function drawPiano()
+{
+    // draw white keys, starting with C
+    for (let i = 0; i < totalWhiteKeys; i++)
+    {
+        let x = startX + (whiteKeyWidth + whiteKeySpacing) * i;
+        let y = startY;
+
+        // border
+        context.strokeStyle = whiteKeyBorderColor;
+        context.strokeRect(x,y, whiteKeyWidth, whiteKeyHeight);
+        // inside
+        let whiteKeyName = whiteKeyNames[i];
+        if (pianoKeyDown[whiteKeyName])
+            context.fillStyle = whiteKeyActiveColor;
+        else
+            context.fillStyle = whiteKeyFillColor;
+        context.fillRect(x,y, whiteKeyWidth, whiteKeyHeight);
+    }
+
+    // draw the sharp keys
+    for (let i = 0; i < totalWhiteKeys - 1; i++)
+    {
+        // need skip some keys
+        if (i % 7 == 2 || i % 7 == 6)
+            continue;
+
+        // calculate where black key x coordinates are
+
+        // start of current white key
+        let x1 = startX + (whiteKeyWidth + whiteKeySpacing) * i;
+        // end of next white key
+        let x2 = startX + (whiteKeyWidth + whiteKeySpacing) * (i + 1) + whiteKeyWidth;
+        // midpoint
+        let xMid = (x1 + x2) / 2;
+        // start of black key
+        let x = xMid - blackKeyWidth/2;
+        
+        let y = startY;
+
+        // border
+        context.strokeStyle = blackKeyBorderColor;
+        context.strokeRect(x,y, blackKeyWidth, blackKeyHeight);
+        // inside
+        let blackKeyName = blackKeyNames[i];
+        if (pianoKeyDown[blackKeyName])
+            context.fillStyle = blackKeyActiveColor;
+        else
+            context.fillStyle = blackKeyFillColor;
+        context.fillRect(x,y, blackKeyWidth, blackKeyHeight);
+    }
+}
+
+function update()
+{
+    input.update();
+    
+    // iterate over all set values
+    for (let keyboardKeyName of input.pressedSet)
+    {
+        // check if key exists in object
+        if (keyboardKeyName in keyboardToPianoMapping)
+        {
+            // set down status to true
+            let pianoKeyName = keyboardToPianoMapping[keyboardKeyName];
+            playNote(pianoKeyName);
+            // pianoKeyDown[pianoKeyName] = true;
+        }
+    }
+
+    for (let keyboardKeyName of input.releasedSet)
+    {
+        // check if key exists in object
+        if (keyboardKeyName in keyboardToPianoMapping)
+        {
+            // set down status to true
+            let pianoKeyName = keyboardToPianoMapping[keyboardKeyName];
+            stopNote(pianoKeyName);
+            //pianoKeyDown[pianoKeyName] = false;
+        }
+    }
+
+    drawPiano();    
+}
+
+function run()
+{
+    initialize();
+    loop();
+}
+
+function loop() 
+{
+    // call function on next screen refresh (approx 1/60 sec)
+	requestAnimationFrame( loop );  
+    update();
+}
+
+run();
+
+</script>
+</body>
+</html>
